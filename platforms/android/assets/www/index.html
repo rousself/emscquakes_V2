@@ -1,0 +1,168 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>EMSCQuakes</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1"/>
+		<link rel="icon" type="image/png" href="icons/icon16.png"/>
+		
+        <link rel="stylesheet" href="css/styles.css" />
+		<script src="cordova.js"></script>
+		<script src="PushNotification.js"></script> 
+		
+   <!--  <script src="js/jquery.mobile-1.3.1.min.js"></script>  -->
+	<script src="js/jquery-1.8.2.min.js"></script> 
+	<script src="js/config.js"></script> 
+	<script src="js/main.js"></script>
+   <!-- <script src="js/iscroll.js"></script> -->
+   <script>
+		var console={log:function(txt) { $('.visible .wrapper').prepend('<p>'+txt+'</p>'); }};	
+		var isloaded=[]; isloaded['Emap']=isloaded['camera']=false;
+		
+		var  isAndroid = (/android/gi).test(navigator.appVersion);		
+		 if(!isAndroid) window.onload=onDeviceReady;
+		
+		document.addEventListener("deviceready", onDeviceReady, true);
+		 function onDeviceReady() { 
+			app.initapp(); 
+			if(isAndroid) Push();
+			console.log('android: '+isAndroid);
+		 }
+		
+		document.addEventListener("menubutton", function(e) { console.log('menu button push '); },false);
+		document.addEventListener("backbutton", function(e) {
+			console.log('backbutton push');
+			if($('.visible').attr('id')=='home') {	
+				// call this to get a new token each time. don't call it to reuse existing token.
+				//pushNotification.unregister(successPushH, errorPushH);
+				e.preventDefault();
+				navigator.app.exitApp();
+			}	
+			else navigator.app.backHistory();
+		 },false);
+		 
+		 	
+		
+     $(document).ready(function(){
+		$("#header").append('<a href="home" id="returnB" class="header-button button slide hidden">Back</a>');
+		
+		$(".slide").click(function(){
+			/*var url = $(this).attr("href");
+			var currentP=$('.visible').attr('id');	
+			$("#returnB").attr("href",currentP); 
+			$(".visible div").not('.noslide').animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
+			//console.log('current **'+currentP+' url ** '+url);
+
+			$("#"+url).removeClass('hidden').addClass('visible');
+			$("#"+url+" div").not('.noslide').css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
+			if(url=='home') $("#returnB").addClass("hidden");
+			else $("#returnB").removeClass("hidden");
+			*/
+			//console.log('href '+$("#returnB").attr("href"));
+			var url=$(this).attr("href");
+			if(url=='Emap') {
+				if(!isloaded['Emap']) { loadCss('css/leaflet.min.css');  loadingJS("js/leaflet_0.5.1.js");  loadingJS("js/map.js?"+(new Date()).getTime()); isloaded['Emap']=true;	}
+				else resetMap();
+			}	
+			else if(url=="camera" && !isloaded['camera'] ) { $("head").append('<script src="js/capture.js" />'); isloaded['camera']=true;}
+		
+			slideTo(url);
+			return false;
+		});
+		
+		
+		$(".footicon").click(function(){
+			$('.gray').removeClass('gray');	$('.footiconsel').removeClass('footiconsel');
+			$(this).children().addClass('footiconsel').children().addClass('gray');
+		});
+		function slideTo(url) {
+			var currentP=$('.visible').attr('id');	
+			$(".visible div").not('.noslide').animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
+			$("#"+url).removeClass('hidden').addClass('visible');
+			$("#"+url+" div").not('.noslide').css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
+		}
+		function loadCss(url) {
+			if (document.createStyleSheet) document.createStyleSheet(url);
+            else $("head").append($("<link rel='stylesheet' href='"+url+"' type='text/css' media='screen' />"));
+		}
+		function loadingJS(source) { var xjs=document.createElement('script'); xjs.src=source; xjs.type="text/javascript"; document.getElementsByTagName('head')[0].appendChild(xjs); }
+		
+	
+ 
+	});	
+	</script>
+    </head>
+
+    <body>
+        
+	<div id="header" class="header">
+		<h1><img src="img/icon32.png" alt="logo" style="vertical-align:middle;margin-right:10px;"/>EMSC Quakes</h1>
+	</div>
+	
+	<div id="home" class="visible">
+		<div class="header2">
+			<h2>Latest earthquakes</h2>
+			<!-- <a href="camera" class="change-pic-btn slide" > Cam </a> -->
+		</div>
+		
+		<div class="wrapper">
+			<div id="app-status-div">
+				<ul id="app-status-ul">	<!-- <li>Cordova PushNotification Plugin Demo</li> --> 	</ul>
+			</div>
+			<ul id="quakesList" class="icon-list"></ul>
+		</div>
+	</div>
+	
+	<div id="camera" class="hidden">
+		<div class="header2"><h2>Camera</h2></div>
+		<div class="wrapper">
+			<p style="text-align:center;">
+			<a href="javascript:Picture(1)" class="bt_a">Picture</a>
+			<a href="javascript:captureVideo()" class="bt_a">Camera</a>
+			<a href="javascript:Picture(2)" class="bt_a">From Photos</a>
+			<a href="javascript:Picture(0)" class="bt_a">From Gallery</a>
+			<a href="javascript:notify()" class="bt_a">Notify</a>
+			<a href="javascript:testAudio()" class="bt_a">Test audio</a>
+			</p>
+			<div id="status" class="noslide hide"></div>
+		</div>
+	</div>
+	
+	
+	<div id="Emap" class="hidden">
+		<div class="header2"><h2>Map</h2></div>
+		<div class="wrapper">
+			<div id="map"></div>
+		</div>
+	</div>
+	
+	<div id="fullcam" class="hidden"><div id="allcams"></div></div>
+	<a href="Feltit" id="FeltitLnk" class="hidden slide"></a>
+	<div id="Feltit" class="hidden">
+		<div class="header2"><h2>Share your Experience</h2></div>
+		<div class="wrapper">
+			<p class="thumb" style="text-align:center;padding-top:10px;font-weight:bold;">Please choose how you felt the earthquake</p>
+			<p id="thumb" class="thumb"></p>
+			
+			<p id="comment" class="hidden">
+				<label for="ques_mail">Email (optional)</label>
+				<input type="email" id="ques_email">
+				<label for="ques_comments">Do you have any other comments about the effects of the earthquake that might be useful?</label>
+				<textarea id="ques_comments" cols="60" rows="5" style="width:90%;"></textarea><br/>
+				<input type="button" value="Finish" onclick="questio_end()"/>
+			</p>
+			
+		</div>
+	</div>
+	
+
+	<div id="busy"/>Loading...</div>
+
+	<div id="footer" class="footer">
+		<a href="Emap" class="footicon slide"><div><div class="mapicon"></div></div></a> 
+		<a href="home" class="footicon slide"><div class="footiconsel"><div class="listicon gray"></div></div></a> 
+		<a href="Esetting" class="footicon slide"><div><div class="settingsicon"></div></div></a>
+	</div>
+	
+    </body>
+
+</html>
